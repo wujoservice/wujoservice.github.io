@@ -1,5 +1,3 @@
-<a> href="......... ">Odwiedź naszą stronę</a>
-
 Siema elo siemandero!
 Polecam http://wujo.eu
 Jak sie podoba to daj suba na kanale:
