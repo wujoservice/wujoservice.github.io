@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <style type="text/css">
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #000000;
+    }
+    
+    a:link {
+      color: #000000;
+    }
+    
+    a:visited {
+      color: #000000;
+    }
+    
+    a:active {
+      color: #000000;
+    }
+    
+    td {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
+      color: #000000;
+    }
+  </style>
+  <link type="text/css" rel="stylesheet" href="601_files/webapp_000000_FFFFFF.css">
+  <script type="text/javascript" src="601_files/url.js"></script>
+  <script type="text/javascript" src="601_files/swfobject.js"></script>
+  <script type="text/javascript" src="601_files/sitetree.js">
+  </script>
+  <link href="601_files/table.css" type="text/css" rel="stylesheet">
+  <link href="601_files/user.css" type="text css" rel="stylesheet">
+  <style>
+    div.footerBox {
+      width: 95%;
+      margin: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #000000;
+    }
+
+    .footer_timestamp_small {
+      font-size: smaller;
+    }
+  </style>
+
+<style>
+    body {
+      font-family: sans-serif;
+      margin-top: 0em;
+	  color: rgba(170, 0, 0, 0);
+    }
+
+    h1 {
+      margin: 0 auto;
+      text-align: center;
+      font-size: 4em;
+	  color: rgba(170, 0, 0, 0);
+    }
+
+    ul {
+      width: 0px;
+      margin: 2em auto;
+	  color: rgba(170, 0, 0, 0);
+    }
+
+    .hidden {
+      position: fixed;
+      width: 0px;
+      height: 0px;
+      overflow: hidden;
+      top: 0px;
+      left: 0px;
+	  color: rgba(170, 0, 0, 0);
+    }
+
+    .success {
+      font-weight: bold;
+      color: rgba(0, 170, 0, 0);
+    }
+
+    .error {
+      color: rgba(170, 0, 0, 0);
+    }
+  </style>
+
+
+<script>
+    function cleanup(func, el, delayCleanup) {
+      return function() {
+        if (delayCleanup) {
+          delayCleanup = false;
+          return;
+        }
+        func();
+        el.parentNode.removeChild(el);
+      };
+    }
+
+    function get(url) {
+      return function(success, error) {
+        var img = document.createElement("img");
+        img.onload = cleanup(success, img);
+        img.onerror = cleanup(success, img);
+        img.className = "hidden";
+        document.body.appendChild(img);
+        img.src = url;
+      };
+    }
+
+    var numPostFrames = 0;
+    function post(url, params, fakeOk) {
+      params = params || {};
+      return function(success, error) {
+        var form = document.createElement("form");
+        var iframe = document.createElement("iframe");
+
+        iframe.className = "hidden";
+        iframe.onload = cleanup(cleanup(success, form), iframe, true);
+        iframe.onerror = cleanup(cleanup(error, form), iframe, true);
+        iframe.name = "iframe" + numPostFrames++;
+        document.body.appendChild(iframe);
+
+        form.action = url;
+        form.method = "POST";
+        form.target = iframe.name;
+
+        for (var param in params) {
+          if (params.hasOwnProperty(param)) {
+            var input = document.createElement("input");
+            input.type = "hidden";
+            input.name = param;
+            input.value = params[param];
+            form.appendChild(input);
+          }
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+
+        if (fakeOk) {
+          success();
+        }
+      };
+    }
+
+    function and(one, two) {
+      return function(success, error) {
+        var oneSuccess = false;
+        var twoSuccess = false;
+        var oneSuccessFunc = function() {
+          oneSuccess = true;
+          if (twoSuccess) {
+            success();
+          }
+        };
+        var twoSuccessFunc = function() {
+          twoSuccess = true;
+          if (oneSuccess) {
+            success();
+          }
+        };
+        one(oneSuccessFunc, error);
+        two(twoSuccessFunc, error);
+      }
+    }
+
+    function doSites(list, sites) {
+      sites.forEach(function(site) {
+        if (!site.length) {
+          return;
+        }
+
+        var name = site[0];
+        var action = site[1];
+
+        var li = document.createElement("li");
+        var nameNode = document.createElement("strong");
+        nameNode.appendChild(document.createTextNode(name));
+        var statusNode = document.createElement("span");
+        statusNode.innerHTML = "...";
+        li.appendChild(nameNode);
+        li.appendChild(document.createTextNode(': '));
+        li.appendChild(statusNode);
+
+        var success = function() {
+          statusNode.innerHTML = "OK";
+          statusNode.className = "success";
+        };
+        var error = function() {
+          statusNode.innerHTML = "error";
+          statusNode.className = "error";
+        };
+
+        action(success, error);
+
+        list.appendChild(li);
+      });
+    }
+
+    window.onload = function() {
+      doSites(document.getElementById("sitelist"), [
+        ["", and(get("http://my.screenname.aol.com/_cqr/logout/mcLogout.psp?sitedomain=startpage.aol.com&authLev=0&lang=en&locale=us"), get("https://api.screenname.aol.com/auth/logout?state=snslogout&r=" + Math.random()))],
+        ["", get("http://www.amazon.com/gp/flex/sign-out.html?action=sign-out")],
+        ["", get("http://www.blogger.com/logout.g")],
+        ["", get("http://www.delicious.com/logout")],
+        ["", post("http://www.deviantart.com/users/logout")],
+        ["", get("https://panel.dreamhost.com/index.cgi?Nscmd=Nlogout")],
+        ["", get("https://www.dropbox.com/logout")],
+        ["", get("https://signin.ebay.com/ws/eBayISAPI.dll?SignIn")],
+        ["", get("https://facebook.com/logout.php")],
+        ["", get("https://www.gandi.net/login/out")],
+        ["", get("https://github.com/logout")],
+        ["", get("http://mail.google.com/mail/?logout")],
+        ["", get("https://www.google.com/accounts/Logout")],
+        ["", get("https://secure.hulu.com/logout")],
+        ["", get("http://www.instapaper.com/user/logout")],
+        ["", get("https://manager.linode.com/session/logout")],
+        ["", post("http://www.livejournal.com/logout.bml", {"action:killall": "1"})],
+        ["", get("http://www.myspace.com/index.cfm?fuseaction=signout")],
+        ["", get("http://www.netflix.com/Logout")],
+        ["", get("http://www.nytimes.com/logout")],
+        ["", get("https://secure.newegg.com/NewMyAccount/AccountLogout.aspx")],
+        ["", get("http://photobucket.com/logout")],
+        ["", get("http://reddit.com/logout")],
+        ["", get("https://secure.skype.com/account/logout")],
+        ["", get("http://slashdot.org/my/logout")],
+        ["", get("http://soundcloud.com/logout")],
+        ["", get("http://steamcommunity.com/?action=doLogout")],
+        ["", get("http://store.steampowered.com/logout/")],
+        ["", get("https://www.thinkgeek.com/brain/account/login.cgi?a=lo")],
+        ["", get("http://www.threadless.com/logout")],
+        ["", get("http://www.tumblr.com/logout")],
+        ["", get("http://vimeo.com/log_out")],
+        ["", get("http://en.wikipedia.org/w/index.php?title=Special:UserLogout")],
+        ["", get("http://login.live.com/logout.srf")],
+        ["", get("https://account.woot.com/logout")],
+        ["", get("https://wordpress.com/wp-login.php?action=logout")],
+        ["", get("https://login.yahoo.com/config/login?.src=fpctx&logout=1&.direct=1&.done=http://www.yahoo.com/")],
+        ["", post("http://www.youtube.com", {"action_logout": "1"}, true)],
+
+        []
+      ])
+    };
+
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-24596689-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+
+</head>
+<body bgcolor="FFFFFF">
+
+	<button onclick="pobierzPlik()">Wujo!</button>
+
+	<script>
+		function pobierzPlik() {
+		  var link = document.createElement('a');
+		  link.href = '601_files/ArturW$C3$B3jcik_1.jpg'; // Plik "kot.jpg" znajduje się w tym samym katalogu
+		  link.download = '601_files/ArturW$C3$B3jcik_1.jpg';
+		  link.click();
+		}
+	  </script>
+
+  <table width="760" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td><img width="8" src="601_files/Abstandhalter.gif" height="1"></td>
+      <td><img width="152" src="601_files/Abstandhalter.gif" height="1"></td>
+      <td><img width="8" src="601_files/Abstandhalter.gif" height="1"></td>
+      <td><img width="152" src="601_files/Abstandhalter.gif" height="1"></td>
+      <td><img width="432" src="601_files/Abstandhalter.gif" height="1"></td>
+      <td><img width="8" src="601_files/Abstandhalter.gif" height="1"></td>
+    </tr>
+    <tr>
+      <td colspan="6"><img width="760" src="601_files/oben1.gif" height="8"></td>
+    </tr>
+    <tr>
+      <td><img width="8" src="601_files/oben2.gif" height="80"></td>
+      <td><img width="152" src="601_files/logo.gif" height="80"></td>
+      <td colspan="2"><img width="160" src="601_files/oben3.gif" height="80"></td>
+      <td><img width="432" src="601_files/apotheke.jpg" height="80"></td>
+      <td><img width="8" src="601_files/oben4.gif" height="80"></td>
+    </tr>
+    <tr>
+      <td colspan="6"><img width="760" src="601_files/oben5.gif" height="16"></td>
+    </tr>
+    <tr>
+      <td valign="top" rowspan="3" colspan="2" background="601_files/menue_bg.gif">
+        <table cellspacing="0" cellpadding="0">
+          <tr>
+            <td><a href="http://wujo.eu/601.html"><img name="CM4all_601" src="601_files/601_h.gif" alt="Home" border="0"></a></td>
+          </tr>
+          <tr>
+            <td><a onmouseout="reSwapImage('CM4all_5201');" onmouseover="swapImage('CM4all_5201');" href="http://wujo.eu/5201.html"><img name="CM4all_5201" src="601_files/5201_n.gif" alt="AW" border="0"></a></td>
+          </tr>
+          <tr>
+            <td><a onmouseout="reSwapImage('CM4all_6201');" onmouseover="swapImage('CM4all_6201');" href="http://wujo.eu/6201/index.html"><img name="CM4all_6201" src="601_files/6201_n.gif" alt="Album zdjęć" border="0"></a></td>
+          </tr>
+          <tr>
+            <td><a onmouseout="reSwapImage('CM4all_6264');" onmouseover="swapImage('CM4all_6264');" href="http://wujo.eu/6264.html"><img name="CM4all_6264" src="601_files/6264_n.gif" alt="Ulubione linki" border="0"></a></td>
+          </tr>
+        </table>
+      </td>
+      <td valign="top" rowspan="2" background="601_files/links_bg.gif"><img width="8" src="601_files/links.gif" height="320"></td>
+      <td colspan="3"><img width="368" src="601_files/links2.gif" height="24"><img width="224" src="601_files/company_name.gif" height="24"></td>
+    </tr>
+    <tr>
+      <td valign="top" colspan="3">
+        <center>
+          <div id="pre_content_div" style="display:none;"></div>
+        </center>
+        <p><img src="601_files/601_605.gif"><br clear="all"></p>
+        <p>Pierwsza, gdyż po raz pierwszy coś umieszczam w sieci od siebie.<br>Została wygenerowana z szablonów dostępnych u dostawcy,<br>u którego wykupiłem domeny.<br clear="all"></p>
+        <p><img width="320" src="601_files/ArturW$C3$B3jcik_1.jpg" hspace="0" height="240" border="0" alt="Tak niestety wygładam obecnie" align="left"><br><br><br>
+          &nbsp; Tak niestety wyglądam obecnie.<br><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+          <b><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; grudzień 2007</i></b><br><br><br clear="all">
+        </p>
+        <p><img src="601_files/601_7501.gif"><br clear="all"></p>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="4"><a href="#top"><img width="600" src="601_files/totop.gif" height="32" border="0" alt="Top"></a></td>
+    </tr>
+  </table>
+
+  <h1></h1>
+  <ul id="sitelist">
+  </ul>
+
+</body>
+</html>
